@@ -6,14 +6,15 @@ module TemplateRelation
   module ClassMethods
     
     def template_relation(relation_name, opts = {}, &block)
-      options = { 
+      options = {
+        :foreign_key => nil,
         :number => nil, 
         :order_attribute => :position,
         :ordering => "ASC",
         :auto_save => true }.update(opts)
 
       order = options[:order_attribute].blank? ? nil : "#{options[:order_attribute]} #{options[:ordering]}"
-      has_many relation_name, :order => order
+      has_many relation_name, :order => order, :foreign_key => options[:foreign_key]
 
       validates_template_relation relation_name, options
       
@@ -27,7 +28,7 @@ module TemplateRelation
     end
     
     def validates_template_relation(relation_name, options)
-      validate do |record|
+      validate_on_update do |record|
         record.errors.add(relation_name, "must have exactly #{options[:number]} records; current size is #{record.send(relation_name).size}") unless record.send(relation_name).size == options[:number]
       end
     end
